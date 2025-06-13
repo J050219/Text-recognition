@@ -26,19 +26,24 @@ def split_tables(image_path, image_name):
     img = cv2.imread(image_path, cv2.IMREAD_COLOR)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray, (3, 3), 0)
-    _, binary = cv2.threshold(blur, 150, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+    _, binary = cv2.threshold(blur, 180, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 
     # 偵測輪廓
     contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    boxes = []
+    for cnt in contours:
+        x, y, w, h = cv2.boundingRect(cnt)
+        if w > 100 and h > 30:  # 過濾小塊雜訊
+            boxes.append((x, y, w, h))
+
+    boxes = sorted(boxes, key=lambda b: (b[1], b[0]))  # 按 Y（top→bottom）排序
     table_paths = []
 
-    for idx, cnt in enumerate(contours):
-        x, y, w, h = cv2.boundingRect(cnt)
-        if w > 100 and h > 50:  # 排除太小的雜訊區塊
-            roi = img[y:y+h, x:x+w]
-            save_path = os.path.join(table_dir, f"{os.path.splitext(image_name)[0]}_table{idx+1}.jpg")
-            cv2.imwrite(save_path, roi)
-            table_paths.append(save_path)
+    for i, (x, y, w, h) in enumerate(boxes):
+        roi = img[y:y+h, x:x+w]
+        save_path = os.path.join(table_dir, f"{os.path.splitext(image_name)[0]}_table{i+1}.jpg")
+        cv2.imwrite(save_path, roi)
+        table_paths.append((save_path, y))  # 回傳圖片路徑與 Y 座標
     return table_paths
 
 image_files = [f for f in os.listdir(image_dir) if f.lower().endswith('.jpg')]
@@ -47,7 +52,8 @@ for image_name in image_files:
     image_path = os.path.join(image_dir, image_name)
     table_images = split_tables(image_path, image_name)
 
-    for table_path in table_images:
+    all_text_blocks = []
+    for table_path, y in table_images:
         image = Image.open(table_path).convert("RGB")
         images = [image]
 
@@ -78,19 +84,21 @@ for image_name in image_files:
 
         # 解析 output_ids 成 output_text
         output_text = text_tokenizer.decode(output_ids, skip_special_tokens=True)
+        all_text_blocks.append((y, output_text))
         print(f"\n📄 {image_name} 辨識結果：\n{output_text}\n")
 
-        # 將結果按行分割並記錄
-        lines = [line.strip() for line in output_text.split('\n') if line.strip()]
-        df = pd.DataFrame(lines, columns=["Text"])
-
-        output_name = os.path.splitext(os.path.basename(table_path))[0] + ".csv"
-        output_path = os.path.join(output_dir, output_name)
-        df.to_csv(output_path, index=False, encoding="utf-8-sig")
-
-        # 清除資源（這行必須在 decode 之後）
         del input_ids, attention_mask, pixel_values, output_ids
         torch.cuda.empty_cache()
         gc.collect()
-        
+
+    all_text_blocks.sort(key=lambda x: x[0])  # 按 Y 座標排序
+    final_lines = []
+    for _, text in all_text_blocks:
+        # 將結果按行分割並記錄
+        lines = [line.strip() for line in text.split('\n') if line.strip()]
+        final_lines.extend(lines)
+
+    df = pd.DataFrame(final_lines, columns=["Text"])
+    df.to_csv(os.path.join(output_dir, f"{os.path.splitext(image_name)[0]}.csv"), index=False, encoding="utf-8-sig")
+
 print("✅ 已將各張圖片辨識結果分別輸出至 output 資料夾中。")
