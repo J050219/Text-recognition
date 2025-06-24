@@ -136,6 +136,9 @@ for image_name in image_files:
     for idx, path in enumerate(table_path):
         lines = recognize_text(path)
         text_content = "\n".join(lines)
+
+        print(f"\n📄 {image_name} - Table{idx+1} 辨識結果：\n{text_content}\n{'='*40}")
+
         all_text_blocks.append({
             "Image": image_name,
             "Table": f"Table{idx+1}",
