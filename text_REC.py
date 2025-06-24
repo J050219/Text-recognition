@@ -28,6 +28,7 @@ def manual_crop(image_path, image_name):
     boxes = []
     cropping = False
     ix , iy = -1, -1
+    current_cursor = (0,0)
 
     screen_height = 500
     scale = screen_height / img.shape[0]
@@ -35,10 +36,14 @@ def manual_crop(image_path, image_name):
     display_clone = display_img.copy()
 
     def draw_rectangle(event, x, y, flags, param):
-        nonlocal cropping, ix, iy
+        nonlocal cropping, ix, iy, current_cursor, boxes
+
         if event == cv2.EVENT_LBUTTONDOWN:
             cropping = True
             ix, iy = x, y
+
+        elif event == cv2.EVENT_MOUSEMOVE:
+            current_cursor = (x, y)
 
         elif event == cv2.EVENT_LBUTTONUP:
             cropping = False
@@ -56,10 +61,23 @@ def manual_crop(image_path, image_name):
 
     cv2.namedWindow("crop")
     cv2.setMouseCallback("crop", draw_rectangle)
-    print("請在圖片上選擇要切割的區域，按下 Esc 鍵完成。➡ 圖片：{image_name}")
+    print("請在圖片上選擇要切割的區域，按下 Esc 鍵完成。")
 
     while True:
-        cv2.imshow("crop", display_clone)
+        display = display_clone.copy()
+
+        for (x1, y1, x2, y2) in boxes:
+            fx = int(x1 * scale)
+            fy = int(y1 * scale)
+            tx = int(x2 * scale)
+            ty = int(y2 * scale)
+            cv2.rectangle(display, (fx, fy), (tx, ty), (0, 255, 0), 2)
+
+        if cropping:
+            x, y = current_cursor
+            cv2.rectangle(display, (ix, iy), (x, y), (0, 255, 255), 2)
+        
+        cv2.imshow("crop", display)
         key = cv2.waitKey(1) & 0xFF
         if key == 27:
             break
