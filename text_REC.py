@@ -56,8 +56,8 @@ def manual_crop(image_path, image_name):
             real_ty = max(0, min(int(ty / scale), img.shape[0] - 1))
 
             boxes.append((real_fx, real_fy, real_tx, real_ty))
-            cv2.rectangle(display_clone, (fx, fy), (tx, ty), (0, 255, 0), 2)
-            cv2.imshow("crop", display_clone)
+            #cv2.rectangle(display_clone, (fx, fy), (tx, ty), (0, 255, 0), 2)
+            #cv2.imshow("crop", display_clone)
 
     cv2.namedWindow("crop")
     cv2.setMouseCallback("crop", draw_rectangle)
@@ -133,15 +133,20 @@ for image_name in image_files:
     table_path = manual_crop(image_path, image_name)
 
     all_text_blocks = []
-    for table_path in table_path:
-        lines = recognize_text(table_path)
-        all_text_blocks.append(lines)
+    for idx, path in enumerate(table_path):
+        lines = recognize_text(path)
+        text_content = "\n".join(lines)
+        all_text_blocks.append({
+            "Image": image_name,
+            "Table": f"Table{idx+1}",
+            "Text": text_content
+        })
 
-    max_rows = max(len(col) for col in all_text_blocks)
-    aligned_cols = [col + [''] * (max_rows - len(col)) for col in all_text_blocks]
-    df = pd.DataFrame({f"Table{idx+1}": col for idx, col in enumerate(aligned_cols)})
+    #max_rows = max(len(col) for col in all_text_blocks)
+    #aligned_cols = [col + [''] * (max_rows - len(col)) for col in all_text_blocks]
+    df = pd.DataFrame(all_text_blocks, columns=["Image", "Table", "Text"])
 
-    output_name = os.path.splitext(os.path.basename(table_path))[0] + ".csv"
+    output_name = os.path.splitext(image_name)[0] + ".csv"
     output_path = os.path.join(output_dir, output_name)
     df.to_csv(output_path, index=False, encoding="utf-8-sig")
     print(f"✅ 已輸出辨識結果：{output_name}")
