@@ -41,9 +41,6 @@ pip install transformers opencv-python pillow pandas
 
 ## **模型資訊-OVIS2**
 OVIS2-4B擅長:
-
 - 圖文理解
-
 - 表格辨識
-
 - 支援繁體中文+手寫字
