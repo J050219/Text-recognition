@@ -20,6 +20,8 @@ env/
 *.whl
 *.dll
 *.lib
+*.jar
+
 # Project output
 images/
 tables/

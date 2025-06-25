@@ -9,6 +9,7 @@
 
 - python 3.8+
 - NVIDIA GPU (建議 VRAM >= 8GB)
+- CUDA 12.3+
 
 安裝必要的套件:
 
@@ -23,20 +24,20 @@ pip install transformers opencv-python pillow pandas
 ## 專案目錄架構
 ```
 Text-recognition/
-    -images/     #放需要辨識的圖片
-    -tables/     #存放框選後的子圖片
-    -output/     #匯出辨識結果 CSV
-    -main.py     #主程式
-    -README.md   #使用說明
+> images/     #放需要辨識的圖片
+> tables/     #存放框選後的子圖片
+> output/     #匯出辨識結果 CSV
+> main.py     #主程式
+> README.md   #使用說明
 ```
 
 ## **使用方法**
-    [^1]:將要辨識的圖片放入images/資料夾中
-    [^2]:執行 python main.py
-    [^3]:框選表格區域(按ESC結束選取)
-    [^4]:將所有選取區塊進行OVIS辨識
-    [^5]:辨識結果即時顯示於終端機
-    [^6]:生成CSV檔存於output/資料夾中
+    [^1] :將要辨識的圖片放入images/資料夾中
+    [^2] :執行 python main.py
+    [^3] :框選表格區域(按ESC結束選取)
+    [^4] :將所有選取區塊進行OVIS辨識
+    [^5] :辨識結果即時顯示於終端機
+    [^6] :生成CSV檔存於output/資料夾中
 
 ## **模型資訊-OVIS2**
 OVIS2-4B擅長:
