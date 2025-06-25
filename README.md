@@ -23,12 +23,12 @@ pip install transformers opencv-python pillow pandas
 
 ## 專案目錄架構
 ```
-Text-recognition/
-<tr> images/     #放需要辨識的圖片
-<tr> tables/     #存放框選後的子圖片
-<tr> output/     #匯出辨識結果 CSV
-<tr> main.py     #主程式
-<tr> README.md   #使用說明
+- Text-recognition/
+    - images/     #放需要辨識的圖片
+    - tables/     #存放框選後的子圖片
+    - output/     #匯出辨識結果 CSV
+    - main.py     #主程式
+    - README.md   #使用說明
 ```
 
 ## **使用方法**
@@ -42,8 +42,8 @@ Text-recognition/
 ## **模型資訊-OVIS2**
 OVIS2-4B擅長:
 
-    圖文理解
+- 圖文理解
 
-    表格辨識
+- 表格辨識
 
-    支援繁體中文+手寫字
+- 支援繁體中文+手寫字
