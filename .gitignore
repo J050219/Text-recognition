@@ -1,1 +1,30 @@
+# Python cache
+__pycache__/
+*.py[cod]
+
+# VSCode settings
+.vscode/
+
+# Virtual environments
 .venv/
+env/
+
+# System files
+.DS_Store
+
+# Image files
+*.jpg
+*.png
+
+# Model wheels
+*.whl
+
+# Project output
+images/
+tables/
+output/
+*.csv
+
+# IDE settings
+.idea/
+
