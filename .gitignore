@@ -18,7 +18,8 @@ env/
 
 # Model wheels
 *.whl
-
+*.dll
+*.lib
 # Project output
 images/
 tables/
