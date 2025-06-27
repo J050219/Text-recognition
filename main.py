@@ -22,7 +22,7 @@ image_dir = "images"
 os.makedirs(output_dir, exist_ok=True)
 os.makedirs(table_dir, exist_ok=True)
 
-# 自動切割
+# 手動切割
 def manual_crop(image_path, image_name):
     img = cv2.imread(image_path)
     boxes = []
@@ -92,8 +92,13 @@ def manual_crop(image_path, image_name):
         table_paths.append(save_path)
     return table_paths
 
+def text_position(text_blocks, threshold=10):
+    sorted_blocks = sorted(text_blocks, key=lambda b: (round(b['y'] / threshold), b['x']))  # 按照 y 座標排序
+    return sorted_blocks
+
 def recognize_text(image_path):
     image = Image.open(image_path).convert("RGB")
+    width, height = image.size
     images = [image]
 
     # 設定提示詞與圖片數
@@ -124,7 +129,19 @@ def recognize_text(image_path):
     # 解析 output_ids 成 output_text
     output_text = text_tokenizer.decode(output_ids, skip_special_tokens=True)
     lines = [line.strip() for line in output_text.split('\n') if line.strip()]
-    return lines
+    
+    text_blocks = []
+    for i, line in enumerate(lines):
+        if not line:
+            continue
+        # 假設每行文字的 y 座標是行號 * 30，x 座標是隨機的
+        text_blocks.append({
+            'text': line,
+            'x': 0,  # 假設 x 座標為 0
+            'y': i * 30  # 假設 y 座標為行號 * 30
+        })
+
+    return text_position(text_blocks)
 
 image_files = [f for f in os.listdir(image_dir) if f.lower().endswith('.jpg')]
 # 執行辨識
@@ -135,19 +152,18 @@ for image_name in image_files:
     all_text_blocks = []
     for idx, path in enumerate(table_path):
         lines = recognize_text(path)
-        text_content = "\n".join(lines)
+        #text_content = "\n".join(lines)
 
-        print(f"\n📄 {image_name} - Table{idx+1} 辨識結果：\n{text_content}\n{'='*40}")
+        #print(f"\n📄 {image_name} - Table{idx+1} 辨識結果：\n{text_content}\n{'='*40}")
 
-        all_text_blocks.append({
-            "Image": image_name,
-            "Table": f"Table{idx+1}",
-            "Text": text_content
-        })
+        for row_idx, text in enumerate(lines):
+            all_text_blocks.append({
+                "Text": text
+            })
 
     #max_rows = max(len(col) for col in all_text_blocks)
     #aligned_cols = [col + [''] * (max_rows - len(col)) for col in all_text_blocks]
-    df = pd.DataFrame(all_text_blocks, columns=["Image", "Table", "Text"])
+    df = pd.DataFrame(all_text_blocks, columns=["Text"])
 
     output_name = os.path.splitext(image_name)[0] + ".csv"
     output_path = os.path.join(output_dir, output_name)
